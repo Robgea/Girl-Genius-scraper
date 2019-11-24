@@ -4,13 +4,15 @@ import os
 import sys
 from collections import Counter
 import datetime
-
+import shelve
 
 
 def GG_crawler(book_dict):
 
-    sys.stdout.write(f'Downloading has begun, time is now: {datetime.datetime.now()}')
+    sys.stdout.write(f'Downloading has begun, time is now: {datetime.datetime.now()}\n')
     sys.stdout.flush()
+
+    gg_tracker = shelve.open('GG_tracker', writeback = True)
 
     url = 'http://www.girlgeniusonline.com/comic.php?date=20021104'
     last_com = False
@@ -20,9 +22,36 @@ def GG_crawler(book_dict):
     last_img = init_read.find(id = 'toplast')
     last_url = last_img.get('href') 
 
-    pages = Counter()
 
+    if 'url' in gg_tracker:
+        url = gg_tracker['url']
+        if url == last_url:
+            sys.stdout.write(f'No new comics since this was last run.\n')
+            last_com = True
+        else:
+            sys.stdout.write('Finding next comic...')
+            sys.stdout.flush()
+            gg_comic = requests.get(url)
+            comic_soup = BeautifulSoup(gg_comic.content, 'html5lib')
+            next_img = comic_soup.find(id = 'topnext')
+            url = next_img.get('href')
+
+
+    else:
+        gg_tracker['url'] = url
+        url = gg_tracker['url']
+
+    if 'pages' in gg_tracker:
+        pages = gg_tracker['pages']
+        book = gg_tracker['book']
+
+    else:
+        gg_tracker['pages'] = Counter()
+        pages = gg_tracker['pages']
+    
     while last_com == False:
+
+
 
         gg_comic = requests.get(url)
 
@@ -66,11 +95,21 @@ def GG_crawler(book_dict):
         
         if url == last_url:
             sys.stdout.write(f'All done! \n Time is now: {datetime.datetime.now()}\n')
+            gg_tracker['book'] = book
+            gg_tracker['url'] = url
+            pages = gg_tracker['pages']
+            gg_tracker.close()
             last_com = True
 
         else:
             next_img = comic_soup.find(id = 'topnext')
             url = next_img.get('href')
+
+
+
+
+
+        
 
 
 books = {'20021104' : 'Book One',
@@ -168,7 +207,11 @@ books = {'20021104' : 'Book One',
         '20181012' : 'Book Nineteen',
         '20190102' : 'Extras',
         '20190104' : 'Book Nineteen',
-        '20190701' : 'Book Twenty'
+        '20190701' : 'Book Twenty',
+        '20190826' : 'Extras',
+        '20190828' : 'Book Twenty',
+        '20190927' : 'Extras',
+        '20190930' : 'Book Twenty',
                 }
 
 
