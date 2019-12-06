@@ -212,6 +212,8 @@ books = {'20021104' : 'Book One',
         '20190828' : 'Book Twenty',
         '20190927' : 'Extras',
         '20190930' : 'Book Twenty',
+        '20191206' : 'Extras',
+        '20191209' : 'Book Twenty',
                 }
 
 
