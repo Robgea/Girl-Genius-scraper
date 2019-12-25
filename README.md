@@ -2,7 +2,7 @@
 
 This script will scrape the Girl Genius web-comic, download every page, organize the page by Volume, and number them accordingly. 
 
-UPDATE: It will now also create a shelf-directory to save its place in the comic. This will let a user periodically run the script so as to update their files instead of forcing a new complete run every time.
+It will also create a shelf-directory to save its place in the comic. This will let a user periodically run the script so as to update their files instead of forcing a new complete run every time. (And it now includes an error catcher that will save your progress should you lose connection during the process of scraping the comic.)
 
 As of November 24th 2019 this runs all the way through the comic, and in its latest run took just under 30 minutes end-to-end. 
 
