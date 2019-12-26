@@ -12,16 +12,22 @@ def GG_crawler(book_dict):
     sys.stdout.write(f'Downloading has begun, time is now: {datetime.datetime.now()}\n')
     sys.stdout.flush()
 
-    gg_tracker = shelve.open('GG_tracker', writeback = True)
+    try: 
 
-    url = 'http://www.girlgeniusonline.com/comic.php?date=20021104'
-    last_com = False
-    book = ''
-    init_url = requests.get(url)
-    init_read = BeautifulSoup(init_url.content, 'html5lib')
-    last_img = init_read.find(id = 'toplast')
-    last_url = last_img.get('href') 
+        url = 'http://www.girlgeniusonline.com/comic.php?date=20021104'
+        last_com = False
+        book = ''
+        init_url = requests.get(url)
+        init_read = BeautifulSoup(init_url.content, 'html5lib')
+        last_img = init_read.find(id = 'toplast')
+        last_url = last_img.get('href') 
 
+    except:
+        sys.stdout.write(f'Unable to reach the Girl Genius server. Operation aborted.\n Time is now: {datetime.datetime.now()} \n')
+        sys.stdout.flush()
+        return 'Done!'
+
+    gg_tracker = shelve.open('GG_tracker', writeback = True) 
 
     if 'url' in gg_tracker:
         url = gg_tracker['url']
@@ -35,7 +41,6 @@ def GG_crawler(book_dict):
             comic_soup = BeautifulSoup(gg_comic.content, 'html5lib')
             next_img = comic_soup.find(id = 'topnext')
             url = next_img.get('href')
-
 
     else:
         gg_tracker['url'] = url
@@ -51,59 +56,69 @@ def GG_crawler(book_dict):
     
     while last_com == False:
 
+        try:
+            gg_comic = requests.get(url)
 
+            com_id = url[-8:]
 
-        gg_comic = requests.get(url)
+            comic_soup = BeautifulSoup(gg_comic.content, 'html5lib')
+            imgs = comic_soup.find_all('img', alt = 'Comic')
 
-        com_id = url[-8:]
+            if com_id in book_dict:
+                book = book_dict[com_id]
+                os.makedirs(book, exist_ok = True)
+                sys.stdout.write(f'Switching to book {book}\n Time is now {datetime.datetime.now()} \n')
+                sys.stdout.flush()
 
-        comic_soup = BeautifulSoup(gg_comic.content, 'html5lib')
-        imgs = comic_soup.find_all('img', alt = 'Comic')
+            if len(imgs) > 0: 
+                for img in imgs:
 
-        if com_id in book_dict:
-            book = book_dict[com_id]
-            os.makedirs(book, exist_ok = True)
-            sys.stdout.write(f'Switching to book {book}\n Time is now {datetime.datetime.now()} \n')
+                    com_down = img.get('src')
+
+                    if com_down == None: 
+                        sys.stdout.write(f'No comic found on page {com_id}. Continuing...\n')
+
+                    else:
+                        pages[book] += 1
+                        image = requests.get(com_down)
+                        com_name = f'{book} {str(pages[book]).zfill(3)}{com_down[-4:]}'
+                        image_file = open(os.path.join(book, os.path.basename(com_name)), 'wb')
+
+                        sys.stdout.write(f'Downloading {book} {pages[book]}\n')
+                        sys.stdout.flush()
+
+                        for chunk in image.iter_content(100_000):
+                            image_file.write(chunk)
+
+                        image_file.close()
+
+            else:
+                sys.stdout.write(f'No comics found on {url}\n')
+                sys.stdout.flush()
+
+        except:
+            sys.stdout.write(f'Error in Downloading Process after {book} {pages[book]}. Ending process.')
             sys.stdout.flush()
-
-        if len(imgs) > 0: 
-            for img in imgs:
-
-                com_down = img.get('src')
-
-                if com_down == None: 
-                    sys.stdout.write(f'No comic found on page {com_id}. Continuing...\n')
-
-                else:
-                    pages[book] += 1
-                    image = requests.get(com_down)
-                    com_name = f'{book} {str(pages[book]).zfill(3)}{com_down[-4:]}'
-                    image_file = open(os.path.join(book, os.path.basename(com_name)), 'wb')
-
-                    sys.stdout.write(f'Downloading {book} {pages[book]}\n')
-                    sys.stdout.flush()
-
-                    for chunk in image.iter_content(100_000):
-                        image_file.write(chunk)
-
-                    image_file.close()
-
-        else:
-            sys.stdout.write(f'No comics found on {url}\n')
-            sys.stdout.flush()
+            gg_tracker['book'] = book
+            gg_tracker['url'] = old_url
+            gg_tracker['pages'] = pages
+            gg_tracker.close()
+            return 'Done!'
 
         
         if url == last_url:
             sys.stdout.write(f'All done! \n Time is now: {datetime.datetime.now()}\n')
             gg_tracker['book'] = book
             gg_tracker['url'] = url
-            pages = gg_tracker['pages']
+            gg_tracker['pages'] = pages
             gg_tracker.close()
             last_com = True
 
         else:
+            old_url = url
             next_img = comic_soup.find(id = 'topnext')
             url = next_img.get('href')
+
 
 
 
