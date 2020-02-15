@@ -13,3 +13,5 @@ If you're doing this you either really like webcomics or like Girl Genius. Eithe
 ## Future Plans
 
 I'll probably update this periodically to account for volume changes, but those updates may take some time. No guarantees though.
+
+2-15-2020 UPDATE: An error cropped up for me once when it seems the 'Next Comic' link wasn't working properly. As a result the numbering system went out of sync for me. I'm hoping to test and tweak this to fix the error if I can catch it on the website in the future. 
