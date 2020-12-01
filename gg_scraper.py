@@ -238,6 +238,7 @@ books = {'20021104' : 'Book One',
         '20200427' : 'Book Twenty-One',
         '20201023' : 'Extras',
         '20201026' : 'Book Twenty-One',
+        '20201130' : 'Mechanicsburg Solstice Story',
                 }
 
 
